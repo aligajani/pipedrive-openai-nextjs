@@ -1,31 +1,7 @@
 import Link from 'next/link'
-import OpenAI from "openai";
 import { cookies } from 'next/headers';
 import PersonsList from '@/components/PersonsList';
-
-// OpenAI client with proper typing
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// Type-safe OpenAI function with error handling
-async function callOpenAI(): Promise<string> {
-  try {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OpenAI API key is not configured');
-    }
-
-    const response = await client.responses.create({
-      model: "gpt-4.1",
-      input: "Write a one-sentence bedtime story about a unicorn."
-    });
-
-    return response.output_text || 'No response generated';
-  } catch (error) {
-    console.error('OpenAI API error:', error);
-    return 'Unable to generate story at this time.';
-  }
-}
+import ChatBot from '@/components/ChatBot';
 
 async function callPersonsApi(): Promise<any> {
   const cookieStore = await cookies();
@@ -41,12 +17,9 @@ async function callPersonsApi(): Promise<any> {
 }
 
 
-
 // Type-safe component with proper error handling
 export default async function Home({ searchParams }: { searchParams: { site: string, level: Number } }) {
   
-  // Get the story with error handling
-  const story: string = await callOpenAI();
   
   const siteValue = searchParams.site?.toString() || '';
   const levelValue = searchParams.level?.toString() || '';
@@ -70,15 +43,26 @@ export default async function Home({ searchParams }: { searchParams: { site: str
                 <p className="text-sm text-gray-600">AI-Powered Integration</p>
               </div>
             </div>
-            <Link 
-              href="/api/auth" 
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-              </svg>
-              Connect Pipedrive
-            </Link>
+            <div className="flex space-x-3">
+              <Link 
+                href="/chat" 
+                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                AI ChatBot
+              </Link>
+              <Link 
+                href="/api/auth" 
+                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                Connect Pipedrive
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -91,9 +75,7 @@ export default async function Home({ searchParams }: { searchParams: { site: str
             <h2 className="text-4xl font-bold text-gray-900 mb-6">
               Welcome to Your CRM Dashboard
             </h2>
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              {story}
-            </p>
+           
             {siteValue && (
               <div className="inline-flex items-center space-x-4 bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-gray-200">
                 <div className="flex items-center space-x-2">
